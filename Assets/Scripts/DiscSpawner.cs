@@ -10,7 +10,18 @@ public class DiscSpawner : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        StartCoroutine(C.Spawn)
+        StartCoroutine(C_Spawn());
+    }
+
+    private void SpawnDisc()
+    {
+        DiscController spawnedDisc = Instantiate(m_discPrefab, transform.position, Quaternion.identity);
+    }
+    private IEnumerator C_Spawn()
+    {
+        yield return new WaitForSeconds(m_spawnFrequency);
+        SpawnDisc();
+        StartCoroutine(C_Spawn());
     }
 
     // Update is called once per frame

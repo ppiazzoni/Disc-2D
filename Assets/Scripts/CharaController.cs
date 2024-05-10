@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class CharaController : MonoBehaviour
 {
+    public float movespeed;
+    public Rigidbody2D rb2d;
+    private Vector2 moveInput;
+
+    private float ActiveMoveSpeed
+    public float DashSpeed;
     [Header("VFX")]
     [SerializeField] private ParticleSystem m_deathVFX;
     private bool m_isAlive = true;
@@ -16,7 +22,12 @@ public class CharaController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        moveInput.x = Input.GetAxisRaw("Horizontal");
+        moveInput.y = Input.GetAxisRaw("Vertical");
         
+        moveInput.Normalize();
+        
+        rb2d.velocity = moveInput * movespeed;
     }
 
     public void TakeDamage(DiscController disc)
@@ -26,7 +37,7 @@ public class CharaController : MonoBehaviour
 
     public void KillChara()
     {
-        Debug.Log("fefd");
+        Debug.Log("Player_Killed");
         m_deathVFX.Play();
         m_isAlive = false;
     }
@@ -42,7 +53,7 @@ public class CharaController : MonoBehaviour
         }
         else
         {
-            print("test");
+            print("test");  
         }
     }
 }
