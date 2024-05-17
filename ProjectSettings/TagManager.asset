@@ -6,6 +6,7 @@ TagManager:
   tags:
   - CharaHitbox
   - Disc
+  - P_Sprite
   layers:
   - Default
   - TransparentFX

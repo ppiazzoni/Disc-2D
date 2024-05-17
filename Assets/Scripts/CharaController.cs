@@ -1,100 +1,110 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class CharaController : MonoBehaviour
 {
-    public float movespeed;
+    public float moveSpeed;
     public Rigidbody2D rb2d;
     private Vector2 moveInput;
     public Canvas deathCanvas;
-    public GameObject Player;
-    private float ActiveMoveSpeed;
-    public float DashSpeed;
-
-    public float DashLength = .5f, DashCooldown = 1f;
-
-    public float DashCounter;
-    public float DashCoolCounter;
+    public GameObject player;
+    private float activeMoveSpeed;
+    public float dashSpeed;
+    public float dashLength = 0.5f, dashCooldown = 1f;
+    private float dashCounter;
+    private float dashCoolCounter;
 
     [Header("VFX")]
-    [SerializeField] private ParticleSystem m_deathVFX;
-    private bool m_isAlive = true;
-    // Start is called before the first frame update
+    [SerializeField] private ParticleSystem deathVFX;
+    private bool isAlive = true;
+    private bool isInvincible = false; 
+
     void Start()
     {
-        ActiveMoveSpeed = movespeed;
+        activeMoveSpeed = moveSpeed;
+        dashCoolCounter = 0f;
+        deathCanvas.gameObject.SetActive(false);
     }
 
-
-    // Update is called once per frame
     void Update()
+    {
+        if (isAlive)
+        {
+            HandleMovement();
+            HandleDash();
+        }
+    }
+
+    private void HandleMovement()
     {
         moveInput.x = Input.GetAxisRaw("Horizontal");
         moveInput.y = Input.GetAxisRaw("Vertical");
-        
         moveInput.Normalize();
-        
-        rb2d.velocity = moveInput * ActiveMoveSpeed;
+        rb2d.velocity = moveInput * activeMoveSpeed;
+    }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+    private void HandleDash()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && dashCoolCounter <= 0 && dashCounter <= 0)
         {
-            if (DashCoolCounter <= 0 && DashCounter <= 0)
+            activeMoveSpeed = dashSpeed;
+            dashCounter = dashLength;
+            isInvincible = true; 
+        }
+
+        if (dashCounter > 0)
+        {
+            dashCounter -= Time.deltaTime;
+            if (dashCounter <= 0)
             {
-                ActiveMoveSpeed = DashSpeed;
-                DashCounter = DashLength;
-             
+                activeMoveSpeed = moveSpeed;
+                dashCoolCounter = dashCooldown;
+                isInvincible = false; 
             }
         }
 
-        if (DashCounter > 0)
+        if (dashCoolCounter > 0)
         {
-            DashCounter -= Time.deltaTime;
-
-            if(DashCounter <= 0)
-            {
-                ActiveMoveSpeed = movespeed;
-                DashCoolCounter = DashCooldown;
-                
-            }
-        }
-
-        if(DashCoolCounter > 0)
-        {
-            DashCoolCounter -= Time.deltaTime;
+            dashCoolCounter -= Time.deltaTime;
         }
     }
 
-
     public void TakeDamage(DiscController disc)
     {
-        KillChara();
+        if (!isInvincible) 
+        {
+            KillChara();
+        }
     }
 
     public void KillChara()
     {
-        Debug.Log("Player_Killed");
-        m_deathVFX.Play();
-        m_isAlive = false;
+        if (isAlive)
+        {
+            Debug.Log("Player_Killed");
+            deathVFX?.Play();
+            isAlive = false;
+            StartCoroutine(HandleDeath());
+        }
+    }
+
+    private IEnumerator HandleDeath()
+    {
+
+        yield return new WaitForSeconds(2f);
         deathCanvas.gameObject.SetActive(true);
-        Player.gameObject.SetActive(false);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.CompareTag("Disc"))
+        if (collision.CompareTag("Disc"))
         {
             DiscController disc = collision.GetComponentInParent<DiscController>();
-            if(disc)
+            if (disc)
             {
                 TakeDamage(disc);
-                
             }
-        }
-        else
-        {
-            print("test");  
         }
     }
 }
